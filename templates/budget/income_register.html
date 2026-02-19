@@ -1,0 +1,31 @@
+<!-- budget/templates/budget/income_register.html -->
+<h1>Registrar Ingreso</h1>
+
+<form action="" method="POST">
+    {% csrf_token %}
+
+    <label for="descripcion">Descripción:</label>
+    <input type="text" name="descripcion" id="descripcion" required>
+    <br>
+
+    <label for="monto">Monto:</label>
+    <input type="number" name="monto" id="monto" step="0.01" required>
+    <br>
+
+    <label for="categoria">Categoría:</label>
+    <select name="categoria" id="categoria">
+        <option value="">-- Sin categoría --</option>
+        {% for cat in categorias %}
+            <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+        {% endfor %}
+    </select>
+    <br>
+
+    <button type="submit">Guardar</button>
+</form>
+
+<br>
+<h2>Ingresos registrados</h2>
+{% for ingreso in ingresos %}
+    <p>{{ ingreso.fecha }} - {{ ingreso.descripcion }} - ${{ ingreso.monto }} - {{ ingreso.categoria }}</p>
+{% endfor %}
