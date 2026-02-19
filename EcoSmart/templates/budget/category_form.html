@@ -1,0 +1,22 @@
+<!-- budget/templates/budget/category_form.html -->
+<h1>{{ titulo }}</h1>
+
+<form action="" method="POST">
+    {% csrf_token %}
+
+    <label for="nombre">Nombre de la Categoría:</label>
+    <input type="text" name="nombre" id="nombre" 
+           value="{% if categoria %}{{ categoria.nombre }}{% endif %}" required>
+    <br>
+
+    <button type="submit">
+        {% if action == 'crear' %}
+            Crear Categoría
+        {% else %}
+            Actualizar Categoría
+        {% endif %}
+    </button>
+    <a href="{% url 'manage_categories' %}">
+        <button type="button">Cancelar</button>
+    </a>
+</form>

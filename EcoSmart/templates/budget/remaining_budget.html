@@ -1,0 +1,38 @@
+<!-- budget/templates/budget/remaining_budget.html -->
+<h1>Presupuesto Restante - {{ mes }}/{{ anio }}</h1>
+
+{% if presupuestos %}
+    <table border="1" cellpadding="10">
+        <thead>
+            <tr>
+                <th>Categoría</th>
+                <th>Límite</th>
+                <th>Gastos</th>
+                <th>Restante</th>
+                <th>% Utilizado</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in presupuestos %}
+                <tr>
+                    <td>{{ item.presupuesto.categoria.nombre }}</td>
+                    <td>${{ item.presupuesto.monto_limite }}</td>
+                    <td>${{ item.total_gastos }}</td>
+                    <td>${{ item.restante }}</td>
+                    <td>{{ item.porcentaje }}%</td>
+                    <td style="color: {% if item.estado == 'Excedido' %}red{% else %}green{% endif %};">
+                        {{ item.estado }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No hay presupuestos asignados para este mes y año.</p>
+{% endif %}
+
+<br>
+<a href="{% url 'budget_create' %}">Crear Presupuesto</a> |
+<a href="{% url 'manage_categories' %}">Gestionar Categorías</a> |
+<a href="{% url 'expense_record' %}">Registrar Gasto</a>

@@ -1,6 +1,109 @@
 # budget/views.py
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Sum
+from datetime import datetime
 from .models import Ingreso, Gasto, Presupuesto, Categoria
+
+
+# Home
+def home(request):
+    total_ingresos = Ingreso.objects.aggregate(Sum('monto'))['monto__sum'] or 0
+    total_gastos = Gasto.objects.aggregate(Sum('monto'))['monto__sum'] or 0
+    balance = float(total_ingresos) - float(total_gastos)
+    
+    return render(request, 'budget/home.html', {
+        'total_ingresos': total_ingresos,
+        'total_gastos': total_gastos,
+        'balance': balance,
+    })
+
+
+# FR6: Calcular presupuesto restante
+def remaining_budget(request):
+    current_month = datetime.now().month
+    current_year = datetime.now().year
+    
+    presupuestos = Presupuesto.objects.filter(mes=current_month, anio=current_year)
+    
+    presupuestos_con_restante = []
+    for presupuesto in presupuestos:
+        # Calcular total de gastos por categoría en el mes/año actual
+        total_gastos = Gasto.objects.filter(
+            categoria=presupuesto.categoria,
+            fecha__month=current_month,
+            fecha__year=current_year
+        ).aggregate(Sum('monto'))['monto__sum'] or 0
+        
+        # Calcular restante
+        restante = float(presupuesto.monto_limite) - float(total_gastos)
+        porcentaje = (float(total_gastos) / float(presupuesto.monto_limite) * 100) if presupuesto.monto_limite > 0 else 0
+        
+        presupuestos_con_restante.append({
+            'presupuesto': presupuesto,
+            'total_gastos': total_gastos,
+            'restante': restante,
+            'porcentaje': round(porcentaje, 2),
+            'estado': 'Excedido' if restante < 0 else 'OK'
+        })
+    
+    return render(request, 'budget/remaining_budget.html', {
+        'presupuestos': presupuestos_con_restante,
+        'mes': current_month,
+        'anio': current_year,
+    })
+
+
+# FR7: Gestionar categorías - Listar
+def manage_categories(request):
+    categorias = Categoria.objects.all()
+    return render(request, 'budget/manage_categories.html', {
+        'categorias': categorias,
+    })
+
+
+# FR7: Gestionar categorías - Crear
+def category_create(request):
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        if nombre:
+            Categoria.objects.create(nombre=nombre)
+            return redirect('manage_categories')
+    
+    return render(request, 'budget/category_form.html', {
+        'titulo': 'Crear Categoría',
+        'action': 'crear',
+    })
+
+
+# FR7: Gestionar categorías - Editar
+def category_edit(request, id):
+    categoria = get_object_or_404(Categoria, id=id)
+    
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        if nombre:
+            categoria.nombre = nombre
+            categoria.save()
+            return redirect('manage_categories')
+    
+    return render(request, 'budget/category_form.html', {
+        'titulo': 'Editar Categoría',
+        'action': 'editar',
+        'categoria': categoria,
+    })
+
+
+# FR7: Gestionar categorías - Eliminar
+def category_delete(request, id):
+    categoria = get_object_or_404(Categoria, id=id)
+    
+    if request.method == 'POST':
+        categoria.delete()
+        return redirect('manage_categories')
+    
+    return render(request, 'budget/category_confirm_delete.html', {
+        'categoria': categoria,
+    })
 
 
 # FR3: Registrar ingreso
