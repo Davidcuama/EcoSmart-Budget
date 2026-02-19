@@ -53,7 +53,7 @@ def remaining_budget(request):
     })
 
 
-# FR7: Gestionar categorías - Listar
+# FR8: Gestionar categorías - Listar
 def manage_categories(request):
     categorias = Categoria.objects.all()
     return render(request, 'budget/manage_categories.html', {
@@ -61,7 +61,7 @@ def manage_categories(request):
     })
 
 
-# FR7: Gestionar categorías - Crear
+# FR8: Gestionar categorías - Crear
 def category_create(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
@@ -75,7 +75,7 @@ def category_create(request):
     })
 
 
-# FR7: Gestionar categorías - Editar
+# FR8: Gestionar categorías - Editar
 def category_edit(request, id):
     categoria = get_object_or_404(Categoria, id=id)
     
@@ -93,7 +93,7 @@ def category_edit(request, id):
     })
 
 
-# FR7: Gestionar categorías - Eliminar
+# FR8: Gestionar categorías - Eliminar
 def category_delete(request, id):
     categoria = get_object_or_404(Categoria, id=id)
     
@@ -169,3 +169,4 @@ def budget_create(request):
         'categorias':   categorias,
         'presupuestos': presupuestos,
     })
+

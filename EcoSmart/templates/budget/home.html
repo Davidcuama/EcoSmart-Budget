@@ -36,6 +36,7 @@
             font-weight: bold;
             margin: 10px 0;
         }
+        
         .income { color: #27ae60; }
         .expense { color: #e74c3c; }
         .balance { color: #2c3e50; }
@@ -67,6 +68,11 @@
         a:hover {
             text-decoration: underline;
         }
+        .chart-container {
+            width: 50px;
+            height: 50px;
+            margin: auto;
+        }   
     </style>
 </head>
 <body>
@@ -96,6 +102,32 @@
         <a href="{% url 'budget_create' %}" class="btn">💰 Crear Presupuesto</a>
         <a href="{% url 'remaining_budget' %}" class="btn">📊 Presupuesto Restante</a>
         <a href="{% url 'manage_categories' %}" class="btn">📁 Gestionar Categorías</a>
+        
     </div>
+    <canvas id="pieChart" width="300" height="300"></canvas>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>   
+    <script>
+        const ctx = document.getElementById('pieChart');
+        const ingresos = Number("{{ total_ingresos|default:0 }}");
+        const gastos = Number("{{ total_gastos|default:0 }}");
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Ingresos', 'Gastos'],
+                datasets: [{
+                    data: [ingresos, gastos],
+                    backgroundColor: [
+                        '#28a745',
+                        '#dc3545'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+    </script>
 </body>
 </html>
