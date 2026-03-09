@@ -27,14 +27,12 @@ def remaining_budget(request):
     
     presupuestos_con_restante = []
     for presupuesto in presupuestos:
-        # Calcular total de gastos por categoría en el mes/año actual
         total_gastos = Gasto.objects.filter(
             categoria=presupuesto.categoria,
             fecha__month=current_month,
             fecha__year=current_year
         ).aggregate(Sum('monto'))['monto__sum'] or 0
         
-        # Calcular restante
         restante = float(presupuesto.monto_limite) - float(total_gastos)
         porcentaje = (float(total_gastos) / float(presupuesto.monto_limite) * 100) if presupuesto.monto_limite > 0 else 0
         
@@ -118,12 +116,21 @@ def income_register(request):
 
         return redirect('income_register')
 
+    # Filtro por categoría (GET)
+    filtro_categoria = request.GET.get('categoria', '').strip()
+
+    ingresos = Ingreso.objects.all()
+    if filtro_categoria:
+        ingresos = ingresos.filter(categoria__id=filtro_categoria)
+
     categorias = Categoria.objects.all()
-    ingresos   = Ingreso.objects.all()
     return render(request, 'budget/income_register.html', {
-        'categorias': categorias,
-        'ingresos':   ingresos,
+        'categorias':       categorias,
+        'ingresos':         ingresos,
+        'filtro_categoria': filtro_categoria,
     })
+
+
 
 
 # FR4: Registrar gasto
@@ -138,11 +145,18 @@ def expense_record(request):
 
         return redirect('expense_record')
 
+    # Filtro por categoría (GET)
+    filtro_categoria = request.GET.get('categoria', '').strip()
+
+    gastos = Gasto.objects.all()
+    if filtro_categoria:
+        gastos = gastos.filter(categoria__id=filtro_categoria)
+
     categorias = Categoria.objects.all()
-    gastos     = Gasto.objects.all()
     return render(request, 'budget/expense_record.html', {
-        'categorias': categorias,
-        'gastos':     gastos,
+        'categorias':       categorias,
+        'gastos':           gastos,
+        'filtro_categoria': filtro_categoria,
     })
 
 
@@ -169,4 +183,3 @@ def budget_create(request):
         'categorias':   categorias,
         'presupuestos': presupuestos,
     })
-

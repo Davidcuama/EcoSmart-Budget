@@ -7,7 +7,7 @@
     <label for="descripcion">Descripción:</label>
     <input type="text" name="descripcion" id="descripcion" required>
     <br>
-
+    
     <label for="monto">Monto:</label>
     <input type="number" name="monto" id="monto" step="0.01" required>
     <br>
@@ -26,6 +26,25 @@
 
 <br>
 <h2>Gastos registrados</h2>
+
+<form method="GET" action="">
+    <label for="f_categoria">Filtrar por categoría:</label>
+    <select name="categoria" id="f_categoria">
+        <option value="">-- Todas --</option>
+        {% for cat in categorias %}
+            <option value="{{ cat.id }}" {% if filtro_categoria == cat.id|stringformat:"s" %}selected{% endif %}>
+                {{ cat.nombre }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filtrar</button>
+    {% if filtro_categoria %}
+        <a href="{% url 'expense_record' %}">Limpiar</a>
+    {% endif %}
+</form>
+
 {% for gasto in gastos %}
     <p>{{ gasto.fecha }} - {{ gasto.descripcion }} - ${{ gasto.monto }} - {{ gasto.categoria }}</p>
+{% empty %}
+    <p>No hay gastos en esta categoría.</p>
 {% endfor %}

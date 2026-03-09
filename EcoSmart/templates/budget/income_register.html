@@ -26,6 +26,25 @@
 
 <br>
 <h2>Ingresos registrados</h2>
+
+<form method="GET" action="">
+    <label for="f_categoria">Filtrar por categoría:</label>
+    <select name="categoria" id="f_categoria">
+        <option value="">-- Todas --</option>
+        {% for cat in categorias %}
+            <option value="{{ cat.id }}" {% if filtro_categoria == cat.id|stringformat:"s" %}selected{% endif %}>
+                {{ cat.nombre }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filtrar</button>
+    {% if filtro_categoria %}
+        <a href="{% url 'income_register' %}">Limpiar</a>
+    {% endif %}
+</form>
+
 {% for ingreso in ingresos %}
     <p>{{ ingreso.fecha }} - {{ ingreso.descripcion }} - ${{ ingreso.monto }} - {{ ingreso.categoria }}</p>
+{% empty %}
+    <p>No hay ingresos en esta categoría.</p>
 {% endfor %}
