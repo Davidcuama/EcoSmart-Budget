@@ -127,11 +127,16 @@ def income_register(request):
     return render(request, 'budget/income_register.html', {
         'categorias':       categorias,
         'ingresos':         ingresos,
-        'filtro_categoria': filtro_categoria,
+        'filtro_categoria': int(filtro_categoria) if filtro_categoria else '',
     })
 
 
-
+def income_delete(request, id):
+    ingreso = get_object_or_404(Ingreso, id=id)
+    if request.method == 'POST':
+        ingreso.delete()
+        return redirect('income_register')
+    return redirect('income_register')
 
 # FR4: Registrar gasto
 def expense_record(request):
@@ -159,6 +164,12 @@ def expense_record(request):
         'filtro_categoria': filtro_categoria,
     })
 
+def expense_delete(request, id):
+    gasto = get_object_or_404(Gasto, id=id)
+    if request.method == 'POST':
+        gasto.delete()
+        return redirect('expense_record')
+    return redirect('expense_record')
 
 # FR5: Crear presupuesto
 def budget_create(request):

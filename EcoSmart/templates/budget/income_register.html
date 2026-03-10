@@ -1,50 +1,261 @@
 <!-- budget/templates/budget/income_register.html -->
-<h1>Registrar Ingreso</h1>
+<!DOCTYPE html>
+<html lang="es">
 
-<form action="" method="POST">
-    {% csrf_token %}
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registrar Ingreso</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
 
-    <label for="descripcion">Descripción:</label>
-    <input type="text" name="descripcion" id="descripcion" required>
-    <br>
+        .card {
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 2px 14px rgba(0, 0, 0, .07);
+        }
 
-    <label for="monto">Monto:</label>
-    <input type="number" name="monto" id="monto" step="0.01" required>
-    <br>
+        .section-label {
+            font-size: .7rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: #adb5bd;
+            margin-bottom: 1.25rem;
+        }
 
-    <label for="categoria">Categoría:</label>
-    <select name="categoria" id="categoria">
-        <option value="">-- Sin categoría --</option>
-        {% for cat in categorias %}
-            <option value="{{ cat.id }}">{{ cat.nombre }}</option>
-        {% endfor %}
-    </select>
-    <br>
+        .income-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: .85rem 1rem;
+            border-radius: 10px;
+            border: 1px solid #f0f0f0;
+            background: #fff;
+            transition: box-shadow .15s;
+        }
 
-    <button type="submit">Guardar</button>
-</form>
+        .income-item:hover {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .07);
+        }
 
-<br>
-<h2>Ingresos registrados</h2>
+        .income-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: #d1e7dd;
+            color: #0f5132;
+            display: grid;
+            place-items: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
 
-<form method="GET" action="">
-    <label for="f_categoria">Filtrar por categoría:</label>
-    <select name="categoria" id="f_categoria">
-        <option value="">-- Todas --</option>
-        {% for cat in categorias %}
-            <option value="{{ cat.id }}" {% if filtro_categoria == cat.id|stringformat:"s" %}selected{% endif %}>
-                {{ cat.nombre }}
-            </option>
-        {% endfor %}
-    </select>
-    <button type="submit">Filtrar</button>
-    {% if filtro_categoria %}
-        <a href="{% url 'income_register' %}">Limpiar</a>
-    {% endif %}
-</form>
+        .income-desc {
+            font-weight: 600;
+            font-size: .93rem;
+        }
 
-{% for ingreso in ingresos %}
-    <p>{{ ingreso.fecha }} - {{ ingreso.descripcion }} - ${{ ingreso.monto }} - {{ ingreso.categoria }}</p>
-{% empty %}
-    <p>No hay ingresos en esta categoría.</p>
-{% endfor %}
+        .income-meta {
+            font-size: .78rem;
+            color: #adb5bd;
+        }
+
+        .income-amount {
+            font-weight: 700;
+            color: #198754;
+            white-space: nowrap;
+        }
+
+        .income-cat {
+            font-size: .7rem;
+            font-weight: 600;
+            background: #f0f0f0;
+            color: #6c757d;
+            border-radius: 6px;
+            padding: .1rem .45rem;
+            margin-left: .4rem;
+        }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #dee2e6;
+            font-size: 1rem;
+            padding: .25rem .4rem;
+            border-radius: 8px;
+            transition: color .15s, background .15s;
+            flex-shrink: 0;
+        }
+
+        .btn-delete:hover {
+            color: #dc3545;
+            background: #fff0f0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container py-5" style="max-width: 600px;">
+
+        <!-- Cabecera -->
+        <div class="mb-4">
+            <span class="badge rounded-pill text-bg-success mb-2 px-3 py-2">
+                <i class="bi bi-wallet2 me-1"></i> Finanzas personales
+            </span>
+            <h1 class="h3 fw-bold mb-1">Registrar Ingreso</h1>
+            <p class="text-muted small mb-0">Añade un nuevo ingreso a tu historial</p>
+        </div>
+
+        <!-- Formulario -->
+        <div class="card p-4 mb-4">
+            <p class="section-label">Nuevo ingreso</p>
+            <form action="" method="POST">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="descripcion" class="form-label fw-semibold">
+                        <i class="bi bi-pencil me-1 text-muted"></i> Descripción
+                    </label>
+                    <input type="text" name="descripcion" id="descripcion" class="form-control"
+                        placeholder="Ej. Salario mensual, freelance…" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="monto" class="form-label fw-semibold">
+                        <i class="bi bi-cash-coin me-1 text-muted"></i> Monto
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white text-muted">$</span>
+                        <input type="number" name="monto" id="monto" class="form-control" step="0.01" placeholder="0.00"
+                            required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="categoria" class="form-label fw-semibold">
+                        <i class="bi bi-tag me-1 text-muted"></i> Categoría
+                        <span class="text-muted fw-normal small ms-1">(opcional)</span>
+                    </label>
+                    <select name="categoria" id="categoria" class="form-select">
+                        <option value="">— Sin categoría —</option>
+                        {% for cat in categorias %}
+                        <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i> Guardar ingreso
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Filtro -->
+        <div class="card p-3 mb-3">
+            <form method="GET" action="" class="d-flex align-items-center gap-2 flex-wrap">
+                <i class="bi bi-funnel text-muted"></i>
+                <select name="categoria" id="f_categoria" class="form-select form-select-sm" style="max-width: 220px;">
+                    <option value="">— Todas las categorías —</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat.id }}" {% if filtro_categoria == cat.id %}selected{% endif %}>
+                        {{ cat.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Filtrar</button>
+                {% if filtro_categoria %}
+                <a href="{% url 'income_register' %}" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-x"></i> Limpiar
+                </a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Lista de ingresos -->
+        <h2 class="h5 fw-bold mb-3">Ingresos registrados</h2>
+
+        <div class="d-flex flex-column gap-2">
+            {% for ingreso in ingresos %}
+            <div class="income-item">
+
+                <div class="income-icon">
+                    <i class="bi bi-arrow-down-circle-fill"></i>
+                </div>
+
+                <div class="flex-grow-1">
+                    <div class="income-desc">
+                        {{ ingreso.descripcion }}
+                        {% if ingreso.categoria %}
+                        <span class="income-cat">{{ ingreso.categoria }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="income-meta">{{ ingreso.fecha }}</div>
+                </div>
+
+                <div class="income-amount me-2">+ ${{ ingreso.monto }}</div>
+
+                <!-- Botón eliminar -->
+                <button class="btn-delete" data-bs-toggle="modal" data-bs-target="#modalEliminar"
+                    data-id="{{ ingreso.id }}" data-desc="{{ ingreso.descripcion }}" title="Eliminar ingreso">
+                    <i class="bi bi-trash3"></i>
+                </button>
+
+            </div>
+            {% empty %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                No hay ingresos registrados aún.
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- Modal de confirmación -->
+    <div class="modal fade" id="modalEliminar" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3">
+                        <span style="font-size:2.5rem;">🗑️</span>
+                    </div>
+                    <h5 class="fw-bold mb-1">¿Eliminar ingreso?</h5>
+                    <p class="text-muted small mb-4" id="modalDesc">Esta acción no se puede deshacer.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary px-6" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <form id="formEliminar" method="POST" action="">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger px-6">
+                                <i class="bi bi-trash3 me-1"></i> Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Al abrir el modal, setear el action del form y la descripción
+        document.getElementById('modalEliminar').addEventListener('show.bs.modal', function (e) {
+            const btn = e.relatedTarget;
+            const id = btn.getAttribute('data-id');
+            const desc = btn.getAttribute('data-desc');
+            document.getElementById('modalDesc').textContent = '"' + desc + '"';
+            document.getElementById('formEliminar').action = '/ingreso/eliminar/' + id + '/';
+        });
+    </script>
+
+</body>
+
+</html>

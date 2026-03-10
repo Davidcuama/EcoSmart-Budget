@@ -1,50 +1,256 @@
 <!-- budget/templates/budget/expense_record.html -->
-<h1>Registrar Gasto</h1>
+<!DOCTYPE html>
+<html lang="es">
 
-<form action="" method="POST">
-    {% csrf_token %}
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registrar Gasto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
 
-    <label for="descripcion">Descripción:</label>
-    <input type="text" name="descripcion" id="descripcion" required>
-    <br>
-    
-    <label for="monto">Monto:</label>
-    <input type="number" name="monto" id="monto" step="0.01" required>
-    <br>
+        .card {
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 2px 14px rgba(0, 0, 0, .07);
+        }
 
-    <label for="categoria">Categoría:</label>
-    <select name="categoria" id="categoria">
-        <option value="">-- Sin categoría --</option>
-        {% for cat in categorias %}
-            <option value="{{ cat.id }}">{{ cat.nombre }}</option>
-        {% endfor %}
-    </select>
-    <br>
+        .section-label {
+            font-size: .7rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: #adb5bd;
+            margin-bottom: 1.25rem;
+        }
 
-    <button type="submit">Guardar</button>
-</form>
+        .expense-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: .85rem 1rem;
+            border-radius: 10px;
+            border: 1px solid #f0f0f0;
+            background: #fff;
+            transition: box-shadow .15s;
+        }
 
-<br>
-<h2>Gastos registrados</h2>
+        .expense-item:hover {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .07);
+        }
 
-<form method="GET" action="">
-    <label for="f_categoria">Filtrar por categoría:</label>
-    <select name="categoria" id="f_categoria">
-        <option value="">-- Todas --</option>
-        {% for cat in categorias %}
-            <option value="{{ cat.id }}" {% if filtro_categoria == cat.id|stringformat:"s" %}selected{% endif %}>
-                {{ cat.nombre }}
-            </option>
-        {% endfor %}
-    </select>
-    <button type="submit">Filtrar</button>
-    {% if filtro_categoria %}
-        <a href="{% url 'expense_record' %}">Limpiar</a>
-    {% endif %}
-</form>
+        .expense-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: #f8d7da;
+            color: #842029;
+            display: grid;
+            place-items: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
 
-{% for gasto in gastos %}
-    <p>{{ gasto.fecha }} - {{ gasto.descripcion }} - ${{ gasto.monto }} - {{ gasto.categoria }}</p>
-{% empty %}
-    <p>No hay gastos en esta categoría.</p>
-{% endfor %}
+        .expense-desc {
+            font-weight: 600;
+            font-size: .93rem;
+        }
+
+        .expense-meta {
+            font-size: .78rem;
+            color: #adb5bd;
+        }
+
+        .expense-amount {
+            font-weight: 700;
+            color: #dc3545;
+            white-space: nowrap;
+        }
+
+        .expense-cat {
+            font-size: .7rem;
+            font-weight: 600;
+            background: #f0f0f0;
+            color: #6c757d;
+            border-radius: 6px;
+            padding: .1rem .45rem;
+            margin-left: .4rem;
+        }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #dee2e6;
+            font-size: 1rem;
+            padding: .25rem .4rem;
+            border-radius: 8px;
+            transition: color .15s, background .15s;
+            flex-shrink: 0;
+        }
+
+        .btn-delete:hover {
+            color: #dc3545;
+            background: #fff0f0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container py-5" style="max-width: 600px;">
+
+        <!-- Cabecera -->
+        <div class="mb-4">
+            <span class="badge rounded-pill text-bg-danger mb-2 px-3 py-2">
+                <i class="bi bi-credit-card me-1"></i> Finanzas personales
+            </span>
+            <h1 class="h3 fw-bold mb-1">Registrar Gasto</h1>
+            <p class="text-muted small mb-0">Añade un nuevo gasto a tu historial</p>
+        </div>
+
+        <!-- Formulario -->
+        <div class="card p-4 mb-4">
+            <p class="section-label">Nuevo gasto</p>
+            <form action="" method="POST">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="descripcion" class="form-label fw-semibold">
+                        <i class="bi bi-pencil me-1 text-muted"></i> Descripción
+                    </label>
+                    <input type="text" name="descripcion" id="descripcion" class="form-control"
+                        placeholder="Ej. Supermercado, transporte…" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="monto" class="form-label fw-semibold">
+                        <i class="bi bi-cash-coin me-1 text-muted"></i> Monto
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white text-muted">$</span>
+                        <input type="number" name="monto" id="monto" class="form-control" step="0.01" placeholder="0.00"
+                            required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="categoria" class="form-label fw-semibold">
+                        <i class="bi bi-tag me-1 text-muted"></i> Categoría
+                        <span class="text-muted fw-normal small ms-1">(opcional)</span>
+                    </label>
+                    <select name="categoria" id="categoria" class="form-select">
+                        <option value="">— Sin categoría —</option>
+                        {% for cat in categorias %}
+                        <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-danger btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i> Guardar gasto
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Filtro -->
+        <div class="card p-3 mb-3">
+            <form method="GET" action="" class="d-flex align-items-center gap-2 flex-wrap">
+                <i class="bi bi-funnel text-muted"></i>
+                <select name="categoria" id="f_categoria" class="form-select form-select-sm" style="max-width: 220px;">
+                    <option value="">— Todas las categorías —</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat.id }}" {% if filtro_categoria == cat.id %}selected{% endif %}>
+                        {{ cat.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Filtrar</button>
+                {% if filtro_categoria %}
+                <a href="{% url 'expense_record' %}" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-x"></i> Limpiar
+                </a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Lista de gastos -->
+        <h2 class="h5 fw-bold mb-3">Gastos registrados</h2>
+
+        <div class="d-flex flex-column gap-2">
+            {% for gasto in gastos %}
+            <div class="expense-item">
+                <div class="expense-icon">
+                    <i class="bi bi-arrow-up-circle-fill"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="expense-desc">
+                        {{ gasto.descripcion }}
+                        {% if gasto.categoria %}
+                        <span class="expense-cat">{{ gasto.categoria }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="expense-meta">{{ gasto.fecha }}</div>
+                </div>
+                <div class="expense-amount me-2">- ${{ gasto.monto }}</div>
+
+                <!-- Botón eliminar -->
+                <button class="btn-delete" data-bs-toggle="modal" data-bs-target="#modalEliminar"
+                    data-id="{{ gasto.id }}" data-desc="{{ gasto.descripcion }}" title="Eliminar gasto">
+                    <i class="bi bi-trash3"></i>
+                </button>
+            </div>
+            {% empty %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                No hay gastos registrados aún.
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- Modal de confirmación -->
+    <div class="modal fade" id="modalEliminar" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3">
+                        <span style="font-size:2.5rem;">🗑️</span>
+                    </div>
+                    <h5 class="fw-bold mb-1">¿Eliminar gasto?</h5>
+                    <p class="text-muted small mb-4" id="modalDesc">Esta acción no se puede deshacer.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <form id="formEliminar" method="POST" action="">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger px-4">
+                                <i class="bi bi-trash3 me-1"></i> Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('modalEliminar').addEventListener('show.bs.modal', function (e) {
+            const btn = e.relatedTarget;
+            const id = btn.getAttribute('data-id');
+            const desc = btn.getAttribute('data-desc');
+            document.getElementById('modalDesc').textContent = '"' + desc + '"';
+            document.getElementById('formEliminar').action = '/gasto/eliminar/' + id + '/';
+        });
+    </script>
+
+</body>
+
+</html>
