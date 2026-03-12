@@ -1,6 +1,6 @@
 # budget/views.py
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Sum
+from django.db.models import Sum, Avg, Count
 from datetime import datetime
 from .models import Ingreso, Gasto, Presupuesto, Categoria
 
@@ -170,6 +170,147 @@ def expense_delete(request, id):
         gasto.delete()
         return redirect('expense_record')
     return redirect('expense_record')
+
+
+# FR6: Historial de transacciones
+def transaction_history(request):
+    filtro_tipo      = request.GET.get('tipo', '')
+    filtro_categoria = request.GET.get('categoria', '').strip()
+    filtro_desde     = request.GET.get('desde', '')
+    filtro_hasta     = request.GET.get('hasta', '')
+
+    ingresos = Ingreso.objects.all()
+    gastos   = Gasto.objects.all()
+
+    if filtro_categoria:
+        ingresos = ingresos.filter(categoria__id=filtro_categoria)
+        gastos   = gastos.filter(categoria__id=filtro_categoria)
+
+    if filtro_desde:
+        ingresos = ingresos.filter(fecha__gte=filtro_desde)
+        gastos   = gastos.filter(fecha__gte=filtro_desde)
+
+    if filtro_hasta:
+        ingresos = ingresos.filter(fecha__lte=filtro_hasta)
+        gastos   = gastos.filter(fecha__lte=filtro_hasta)
+
+    transacciones = []
+
+    if filtro_tipo != 'gasto':
+        for i in ingresos:
+            transacciones.append({
+                'tipo':       'ingreso',
+                'descripcion': i.descripcion,
+                'monto':       i.monto,
+                'fecha':       i.fecha,
+                'categoria':   i.categoria,
+                'id':          i.id,
+            })
+
+    if filtro_tipo != 'ingreso':
+        for g in gastos:
+            transacciones.append({
+                'tipo':       'gasto',
+                'descripcion': g.descripcion,
+                'monto':       g.monto,
+                'fecha':       g.fecha,
+                'categoria':   g.categoria,
+                'id':          g.id,
+            })
+
+    transacciones.sort(key=lambda t: t['fecha'], reverse=True)
+
+    categorias = Categoria.objects.all()
+
+    return render(request, 'budget/transaction_history.html', {
+        'transacciones':   transacciones,
+        'categorias':      categorias,
+        'filtro_tipo':     filtro_tipo,
+        'filtro_categoria': int(filtro_categoria) if filtro_categoria else '',
+        'filtro_desde':    filtro_desde,
+        'filtro_hasta':    filtro_hasta,
+    })
+
+
+# FR20: Estadísticas financieras
+def financial_statistics(request):
+    from django.db.models.functions import TruncMonth
+    from collections import defaultdict
+
+    total_ingresos = Ingreso.objects.aggregate(total=Sum('monto'))['total'] or 0
+    total_gastos   = Gasto.objects.aggregate(total=Sum('monto'))['total'] or 0
+    balance        = float(total_ingresos) - float(total_gastos)
+    tasa_ahorro    = round((balance / float(total_ingresos) * 100), 2) if total_ingresos > 0 else 0
+
+    num_ingresos = Ingreso.objects.count()
+    num_gastos   = Gasto.objects.count()
+
+    promedio_ingreso = round(float(total_ingresos) / num_ingresos, 2) if num_ingresos > 0 else 0
+    promedio_gasto   = round(float(total_gastos) / num_gastos, 2)     if num_gastos   > 0 else 0
+
+    # Categoría con más gasto
+    cat_gastos = (
+        Gasto.objects
+        .values('categoria__nombre')
+        .annotate(total=Sum('monto'))
+        .order_by('-total')
+    )
+    top_categoria = cat_gastos.first() if cat_gastos.exists() else None
+
+    # Ingresos y gastos agrupados por mes
+    ingresos_por_mes = (
+        Ingreso.objects
+        .annotate(mes=TruncMonth('fecha'))
+        .values('mes')
+        .annotate(total=Sum('monto'))
+        .order_by('mes')
+    )
+
+    gastos_por_mes = (
+        Gasto.objects
+        .annotate(mes=TruncMonth('fecha'))
+        .values('mes')
+        .annotate(total=Sum('monto'))
+        .order_by('mes')
+    )
+
+    meses = sorted(set(
+        [r['mes'] for r in ingresos_por_mes] +
+        [r['mes'] for r in gastos_por_mes]
+    ))
+
+    ing_dict   = {r['mes']: float(r['total']) for r in ingresos_por_mes}
+    gasto_dict = {r['mes']: float(r['total']) for r in gastos_por_mes}
+
+    evolucion = []
+    for mes in meses:
+        ing = ing_dict.get(mes, 0)
+        gas = gasto_dict.get(mes, 0)
+        evolucion.append({
+            'mes':     mes.strftime('%b %Y'),
+            'ingreso': ing,
+            'gasto':   gas,
+            'balance': round(ing - gas, 2),
+        })
+
+    # Mes con mayor gasto
+    mes_mayor_gasto = max(evolucion, key=lambda x: x['gasto']) if evolucion else None
+
+    return render(request, 'budget/financial_statistics.html', {
+        'total_ingresos':  total_ingresos,
+        'total_gastos':    total_gastos,
+        'balance':         balance,
+        'tasa_ahorro':     tasa_ahorro,
+        'num_ingresos':    num_ingresos,
+        'num_gastos':      num_gastos,
+        'promedio_ingreso': promedio_ingreso,
+        'promedio_gasto':  promedio_gasto,
+        'top_categoria':   top_categoria,
+        'evolucion':       evolucion,
+        'mes_mayor_gasto': mes_mayor_gasto,
+        'cat_gastos':      cat_gastos,
+    })
+
 
 # FR5: Crear presupuesto
 def budget_create(request):
