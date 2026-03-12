@@ -106,6 +106,8 @@ def category_delete(request, id):
 
 # FR3: Registrar ingreso
 def income_register(request):
+    import json
+    
     if request.method == 'POST':
         descripcion  = request.POST.get('descripcion')
         monto        = request.POST.get('monto')
@@ -124,12 +126,40 @@ def income_register(request):
         ingresos = ingresos.filter(categoria__id=filtro_categoria)
 
     categorias = Categoria.objects.all()
+    
+    # ========== NUEVO CÓDIGO PARA LA GRÁFICA ==========
+    # Agrupar ingresos por categoría
+    ingresos_query = Ingreso.objects.all()
+    if filtro_categoria:
+        ingresos_query = ingresos_query.filter(categoria__id=filtro_categoria)
+    
+    ingresos_por_categoria = ingresos_query.values('categoria__nombre').annotate(
+        total=Sum('monto')
+    ).order_by('-total')
+    
+    # Preparar listas para la gráfica
+    categorias_list = []
+    montos_list = []
+    
+    for ingreso in ingresos_por_categoria:
+        nombre = ingreso['categoria__nombre'] or 'Sin categoría'
+        monto = float(ingreso['total']) if ingreso['total'] else 0
+        
+        categorias_list.append(nombre)
+        montos_list.append(monto)
+    
+    # Convertir a JSON para pasar al HTML
+    categorias_json = json.dumps(categorias_list)
+    montos_json = json.dumps(montos_list)
+    # ========== FIN DEL CÓDIGO NUEVO ==========
+    
     return render(request, 'budget/income_register.html', {
-        'categorias':       categorias,
-        'ingresos':         ingresos,
-        'filtro_categoria': int(filtro_categoria) if filtro_categoria else '',
+        'categorias':           categorias,
+        'ingresos':             ingresos,
+        'filtro_categoria':     filtro_categoria,
+        'categorias_json':      categorias_json,      # NUEVO
+        'montos_json':          montos_json,          # NUEVO
     })
-
 
 def income_delete(request, id):
     ingreso = get_object_or_404(Ingreso, id=id)
