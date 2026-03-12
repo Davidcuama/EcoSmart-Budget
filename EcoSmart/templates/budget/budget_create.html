@@ -1,0 +1,34 @@
+<!-- budget/templates/budget/budget_create.html -->
+<h1>Crear Presupuesto</h1>
+
+<form action="" method="POST">
+    {% csrf_token %}
+
+    <label for="categoria">Categoría:</label>
+    <select name="categoria" id="categoria" required>
+        {% for cat in categorias %}
+            <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+        {% endfor %}
+    </select>
+    <br>
+
+    <label for="monto_limite">Monto límite:</label>
+    <input type="number" name="monto_limite" id="monto_limite" step="0.01" required>
+    <br>
+
+    <label for="mes">Mes (1-12):</label>
+    <input type="number" name="mes" id="mes" min="1" max="12" required>
+    <br>
+
+    <label for="anio">Año:</label>
+    <input type="number" name="anio" id="anio" required>
+    <br>
+
+    <button type="submit">Guardar</button>
+</form>
+
+<br>
+<h2>Presupuestos creados</h2>
+{% for p in presupuestos %}
+    <p>{{ p.categoria }} - ${{ p.monto_limite }} - {{ p.mes }}/{{ p.anio }}</p>
+{% endfor %}

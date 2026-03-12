@@ -1,0 +1,13 @@
+<!-- budget/templates/budget/category_confirm_delete.html -->
+<h1>Confirmar Eliminación</h1>
+
+<p>¿Estás seguro de que deseas eliminar la categoría <strong>{{ categoria.nombre }}</strong>?</p>
+<p style="color: orange;">⚠️ Nota: Los ingresos y gastos asociados a esta categoría se desasociarán.</p>
+
+<form action="" method="POST">
+    {% csrf_token %}
+    <button type="submit" style="color: red;">Sí, Eliminar Categoría</button>
+    <a href="{% url 'manage_categories' %}">
+        <button type="button">Cancelar</button>
+    </a>
+</form>

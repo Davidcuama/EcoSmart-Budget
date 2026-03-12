@@ -1,0 +1,148 @@
+<!-- budget/templates/budget/home.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EcoSmart - Budget Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        h2 {
+            margin: 10px 0;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 10px 0;
+        }
+        .card {
+            background: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .card h3 {
+            margin: 0 0 5px 0;
+            color: #555;
+            font-size: 14px;
+        }
+        .card .amount {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 4px 0;
+        }
+        .income { color: #27ae60; }
+        .expense { color: #e74c3c; }
+        .balance { color: #2c3e50; }
+
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 20px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .chart-container {
+            width: 450px;
+            height: 500px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌱 EcoSmart - Gestor de Presupuesto</h1>
+    
+    <div class="dashboard">
+        <div class="card">
+            <h3>Total Ingresos</h3>
+            <div class="amount income">${{ total_ingresos }}</div>
+        </div>
+        <div class="card">
+            <h3>Total Gastos</h3>
+            <div class="amount expense">${{ total_gastos }}</div>
+        </div>
+        <div class="card">
+            <h3>Balance</h3>
+            <div class="amount {% if balance >= 0 %}balance{% else %}expense{% endif %}">
+                ${{ balance }}
+            </div>
+        </div>
+    </div>
+
+    <h2>Funcionalidades</h2>
+    <div class="menu">
+        <a href="{% url 'income_register' %}" class="btn">📥 Registrar Ingreso</a>
+        <a href="{% url 'expense_record' %}" class="btn">📤 Registrar Gasto</a>
+        <a href="{% url 'budget_create' %}" class="btn">💰 Crear Presupuesto</a>
+        <a href="{% url 'remaining_budget' %}" class="btn">📊 Presupuesto Restante</a>
+        <a href="{% url 'manage_categories' %}" class="btn">📁 Gestionar Categorías</a>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="pieChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('pieChart');
+        const ingresos = Number("{{ total_ingresos|default:0 }}");
+        const gastos = Number("{{ total_gastos|default:0 }}");
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Ingresos', 'Gastos'],
+                datasets: [{
+                    data: [ingresos, gastos],
+                    backgroundColor: ['#28a745', '#dc3545']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: {
+                                size: 18  
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

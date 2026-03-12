@@ -1,0 +1,42 @@
+<!-- budget/templates/budget/manage_categories.html -->
+<h1>Gestionar Categorías</h1>
+
+<a href="{% url 'category_create' %}">
+    <button>+ Crear Nueva Categoría</button>
+</a>
+
+<br><br>
+
+{% if categorias %}
+    <h2>Categorías existentes</h2>
+    <table border="1" cellpadding="10">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for categoria in categorias %}
+                <tr>
+                    <td>{{ categoria.nombre }}</td>
+                    <td>
+                        <a href="{% url 'category_edit' categoria.id %}">
+                            <button>Editar</button>
+                        </a>
+                        <a href="{% url 'category_delete' categoria.id %}">
+                            <button style="color: red;">Eliminar</button>
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No hay categorías creadas. <a href="{% url 'category_create' %}">Crear una</a></p>
+{% endif %}
+
+<br>
+<a href="{% url 'income_register' %}">Registrar Ingreso</a> |
+<a href="{% url 'expense_record' %}">Registrar Gasto</a> |
+<a href="{% url 'remaining_budget' %}">Ver Presupuesto Restante</a>
