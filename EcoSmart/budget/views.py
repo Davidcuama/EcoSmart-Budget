@@ -140,6 +140,8 @@ def income_delete(request, id):
 
 # FR4: Registrar gasto
 def expense_record(request):
+    import json  # Agregar al inicio
+    
     if request.method == 'POST':
         descripcion  = request.POST.get('descripcion')
         monto        = request.POST.get('monto')
@@ -158,10 +160,38 @@ def expense_record(request):
         gastos = gastos.filter(categoria__id=filtro_categoria)
 
     categorias = Categoria.objects.all()
+    
+    # Agrupar gastos por categoría
+    gastos_query = Gasto.objects.all()
+    if filtro_categoria:
+        gastos_query = gastos_query.filter(categoria__id=filtro_categoria)
+    
+    gastos_por_categoria = gastos_query.values('categoria__nombre').annotate(
+        total=Sum('monto')
+    ).order_by('-total')
+    
+    # Preparar listas para la gráfica
+    categorias_list = []
+    montos_list = []
+    
+    for gasto in gastos_por_categoria:
+        nombre = gasto['categoria__nombre'] or 'Sin categoría'
+        monto = float(gasto['total']) if gasto['total'] else 0
+        
+        categorias_list.append(nombre)
+        montos_list.append(monto)
+    
+    # Convertir a JSON para pasar al HTML
+    categorias_json = json.dumps(categorias_list)
+    montos_json = json.dumps(montos_list)
+    # ========== FIN DEL CÓDIGO NUEVO ==========
+    
     return render(request, 'budget/expense_record.html', {
-        'categorias':       categorias,
-        'gastos':           gastos,
-        'filtro_categoria': filtro_categoria,
+        'categorias':           categorias,
+        'gastos':               gastos,
+        'filtro_categoria':     filtro_categoria,
+        'categorias_json':      categorias_json,      
+        'montos_json':          montos_json,          
     })
 
 def expense_delete(request, id):

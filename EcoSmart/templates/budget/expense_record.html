@@ -8,6 +8,7 @@
     <title>Registrar Gasto</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             background-color: #f8f9fa;
@@ -96,6 +97,17 @@
             color: #dc3545;
             background: #fff0f0;
         }
+
+        /* Estilos para la gráfica */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+
+        .card-chart {
+            background: linear-gradient(135deg, #ffe5e5 0%, #fff5f5 100%);
+        }
     </style>
 </head>
 
@@ -179,8 +191,28 @@
         </div>
 
         <!-- Lista de gastos -->
-        <h2 class="h5 fw-bold mb-3">Gastos registrados</h2>
+        <!-- Gráfica de gastos por categoría -->
+        <div class="card p-4 mb-4 card-chart">
+            <p class="section-label">Resumen de gastos por categoría</p>
+            <div class="chart-container">
+                <canvas id="chartGastos"></canvas>
+            </div>
+            <div id="emptyChartMessage" class="text-center text-muted py-4" style="display: none;">
+                <i class="bi bi-graph-up fs-2 d-block mb-2"></i>
+                <p class="small">No hay datos de gastos aún</p>
+            </div>
+        </div>
+        </div>
 
+        <!-- Datos para la gráfica JSON -->
+        <script type="application/json" id="datosGrafica">
+        {
+            "categorias": {{ categorias_json|safe }},
+            "montos": {{ montos_json|safe }}
+        }
+        </script>
+        <!-- Lista de gastos -->
+        <h2 class="h5 fw-bold mb-3">Gastos registrados</h2>
         <div class="d-flex flex-column gap-2">
             {% for gasto in gastos %}
             <div class="expense-item">
@@ -249,8 +281,80 @@
             document.getElementById('modalDesc').textContent = '"' + desc + '"';
             document.getElementById('formEliminar').action = '/gasto/eliminar/' + id + '/';
         });
+
+        // Inicializar gráfica de gastos por categoría
+        document.addEventListener('DOMContentLoaded', function () {
+            const categorias = {{ categorias_json|safe }};
+            const montos = {{ montos_json|safe }};
+        if (categorias.length > 0) {
+            const colores = [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(153, 102, 255, 0.7)',
+                'rgba(255, 159, 64, 0.7)',  
+                'rgba(199, 199, 199, 0.7)',
+                'rgba(83, 102, 255, 0.7)',
+                'rgba(255, 99, 255, 0.7)',
+                'rgba(99, 255, 132, 0.7)'
+            ];
+
+            const borde = colores.map(color => color.replace('0.7', '1'));
+
+            const ctx = document.getElementById('chartGastos').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: categorias,
+                    datasets: [{
+                        data: montos,
+                        backgroundColor: colores.slice(0, categorias.length),
+                        borderColor: borde.slice(0, categorias.length),
+                        borderWidth: 2,
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 13,
+                                    weight: '500'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                label: function (context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const valor = context.parsed;
+                                    const porcentaje = ((valor / total) * 100).toFixed(1);
+                                    return `$${valor.toFixed(2)} (${porcentaje}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+                } else {
+                    document.getElementById('emptyChartMessage').style.display = 'block';
+                }
+            });
     </script>
 
 </body>
-
-</html>
