@@ -1,42 +1,70 @@
-<!-- budget/templates/budget/manage_categories.html -->
-<h1>Gestionar Categorías</h1>
+{% extends "base.html" %}
 
-<a href="{% url 'category_create' %}">
-    <button>+ Crear Nueva Categoría</button>
-</a>
+{% block title %}Gestionar Categorías{% endblock %}
 
-<br><br>
+{% block content %}
+<div class="container" style="max-width: 800px;">
+    <div class="mb-4">
+        <h1 class="h3 fw-bold mb-1">Gestionar Categorías</h1>
+        <p class="text-muted small mb-0">Crea, edita o elimina tus categorías de gastos e ingresos</p>
+    </div>
 
-{% if categorias %}
-    <h2>Categorías existentes</h2>
-    <table border="1" cellpadding="10">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for categoria in categorias %}
-                <tr>
-                    <td>{{ categoria.nombre }}</td>
-                    <td>
-                        <a href="{% url 'category_edit' categoria.id %}">
-                            <button>Editar</button>
-                        </a>
-                        <a href="{% url 'category_delete' categoria.id %}">
-                            <button style="color: red;">Eliminar</button>
-                        </a>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-{% else %}
-    <p>No hay categorías creadas. <a href="{% url 'category_create' %}">Crear una</a></p>
-{% endif %}
+    <div class="mb-4">
+        <a href="{% url 'category_create' %}" class="btn btn-success">
+            <i class="bi bi-plus-circle me-1"></i> Crear Nueva Categoría
+        </a>
+    </div>
 
-<br>
-<a href="{% url 'income_register' %}">Registrar Ingreso</a> |
-<a href="{% url 'expense_record' %}">Registrar Gasto</a> |
-<a href="{% url 'remaining_budget' %}">Ver Presupuesto Restante</a>
+    {% if categorias %}
+        <h2 class="h5 fw-bold mb-3">Categorías existentes</h2>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for categoria in categorias %}
+                        <tr>
+                            <td>
+                                <i class="bi bi-tag me-2 text-muted"></i>
+                                {{ categoria.nombre }}
+                            </td>
+                            <td>
+                                <a href="{% url 'category_edit' categoria.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil me-1"></i> Editar
+                                </a>
+                                <a href="{% url 'category_delete' categoria.id %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash3 me-1"></i> Eliminar
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center py-5">
+            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+            <p class="mb-2">No hay categorías creadas.</p>
+            <a href="{% url 'category_create' %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle me-1"></i> Crear una ahora
+            </a>
+        </div>
+    {% endif %}
+
+    <div class="mt-4 d-flex gap-2 flex-wrap">
+        <a href="{% url 'income_register' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-down-left me-1"></i> Registrar Ingreso
+        </a>
+        <a href="{% url 'expense_record' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-up-right me-1"></i> Registrar Gasto
+        </a>
+        <a href="{% url 'remaining_budget' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-percent me-1"></i> Ver Presupuesto Restante
+        </a>
+    </div>
+</div>
+{% endblock %}

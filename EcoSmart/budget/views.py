@@ -395,3 +395,10 @@ def budget_create(request):
         'categorias':   categorias,
         'presupuestos': presupuestos,
     })
+
+def budget_delete(request, id):
+    presupuesto = get_object_or_404(Presupuesto, id=id)
+    if request.method == 'POST':
+        presupuesto.delete()
+        return redirect('budget_create')
+    return redirect('budget_create')
