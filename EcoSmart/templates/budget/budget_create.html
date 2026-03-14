@@ -1,299 +1,120 @@
-{% extends "base.html" %}
-
-{% block title %}Crear Presupuesto - EcoSmart{% endblock %}
-
-{% block extra_css %}
-<style>
-    .budget-item {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: .85rem 1rem;
-        border-radius: 10px;
-        border: 1px solid #f0f0f0;
-        background: #fff;
-        transition: box-shadow .15s;
-    }
-
-    .budget-item:hover {
-        box-shadow: 0 2px 10px rgba(0, 0, 0, .07);
-    }
-
-    .budget-icon {
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-        background: #d4edff;
-        color: #0c5aa0;
-        display: grid;
-        place-items: center;
-        font-size: 1rem;
-        flex-shrink: 0;
-    }
-
-    .budget-desc {
-        font-weight: 600;
-        font-size: .93rem;
-    }
-
-    .budget-meta {
-        font-size: .78rem;
-        color: #adb5bd;
-    }
-
-    .budget-amount {
-        font-weight: 700;
-        color: #0c5aa0;
-        white-space: nowrap;
-    }
-
-    .badge-period {
-        font-size: .7rem;
-        font-weight: 600;
-        background: #e7f3ff;
-        color: #004085;
-        border-radius: 6px;
-        padding: .2rem .5rem;
-        margin-left: .4rem;
-    }
-
-    .btn-delete {
-        background: none;
-        border: none;
-        color: #dee2e6;
-        font-size: 1rem;
-        padding: .25rem .4rem;
-        border-radius: 8px;
-        transition: color .15s, background .15s;
-        flex-shrink: 0;
-    }
-
-    .btn-delete:hover {
-        color: #dc3545;
-        background: #fff0f0;
-    }
-
-    .btn-primary {
-        background-color: #0c5aa0;
-        border-color: #0c5aa0;
-    }
-
-    .btn-primary:hover {
-        background-color: #0a4a80;
-        border-color: #0a4a80;
-    }
-
-    .month-year-inputs {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .month-year-inputs .form-group {
-        flex: 1;
-    }
-
-    @media (max-width: 576px) {
-        .budget-item {
-            flex-wrap: wrap;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crear Presupuesto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
         }
-
-        .budget-amount {
-            order: -1;
-            width: 100%;
+        .card {
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 2px 14px rgba(0, 0, 0, .07);
         }
-    }
-</style>
-{% endblock %}
+        .section-label {
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: #adb5bd;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container py-5" style="max-width: 760px;">
 
-{% block content %}
-<div class="container" style="max-width: 1200px;">
-
-    <!-- Header -->
-    <div class="mb-4">
-        <span class="badge rounded-pill text-bg-info mb-2 px-3 py-2">
-            <i class="bi bi-percent me-1"></i> Gestión de presupuestos
+    <div class="text-center mb-4">
+        <span class="badge rounded-pill text-bg-success px-3 py-2 mb-2">
+            <i class="bi bi-wallet2 me-1"></i> Finanzas personales
         </span>
         <h1 class="h3 fw-bold mb-1">Crear Presupuesto</h1>
-        <p class="text-muted small mb-0">Define límites de gasto por categoría y período</p>
+        <p class="text-muted small mb-0">Define límites mensuales por categoría</p>
     </div>
 
-    <!-- Form Section -->
-    <div class="row g-4 mb-4">
-        <div class="col-lg-6">
-            <div class="card p-4">
-                <p class="section-label">Nuevo presupuesto</p>
-                <form action="" method="POST">
-                    {% csrf_token %}
+    <div class="card p-4 mb-4">
+        <p class="section-label">Nuevo presupuesto</p>
 
-                    <!-- Categoría -->
-                    <div class="mb-3">
-                        <label for="categoria" class="form-label fw-semibold">
-                            <i class="bi bi-tag me-1 text-muted"></i> Categoría
-                        </label>
-                        <select name="categoria" id="categoria" class="form-select" required>
-                            <option value="">— Selecciona una categoría —</option>
-                            {% for cat in categorias %}
-                            <option value="{{ cat.id }}">{{ cat.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+        <form action="" method="POST" class="row g-3">
+            {% csrf_token %}
 
-                    <!-- Monto Límite -->
-                    <div class="mb-3">
-                        <label for="monto_limite" class="form-label fw-semibold">
-                            <i class="bi bi-cash-coin me-1 text-muted"></i> Monto límite
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-white text-muted">$</span>
-                            <input type="number" name="monto_limite" id="monto_limite" class="form-control"
-                                step="0.01" placeholder="0.00" required>
+            <div class="col-12">
+                <label for="categoria" class="form-label fw-semibold">Categoría</label>
+                <select name="categoria" id="categoria" class="form-select" required>
+                    <option value="" disabled selected>Selecciona una categoría</option>
+                    {% for cat in categorias %}
+                        <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label for="monto_limite" class="form-label fw-semibold">Monto límite</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white text-muted">$</span>
+                    <input type="number" name="monto_limite" id="monto_limite" class="form-control" step="0.01" min="0.01" placeholder="0.00" required>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <label for="mes" class="form-label fw-semibold">Mes</label>
+                <input type="number" name="mes" id="mes" class="form-control" min="1" max="12" placeholder="1 - 12" required>
+            </div>
+
+            <div class="col-md-4">
+                <label for="anio" class="form-label fw-semibold">Año</label>
+                <input type="number" name="anio" id="anio" class="form-control" min="2000" max="2100" placeholder="2026" required>
+            </div>
+
+            <div class="col-12 d-grid mt-2">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="bi bi-check2-circle me-1"></i> Guardar presupuesto
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <p class="section-label mb-0">Presupuestos creados</p>
+            <span class="badge text-bg-light border">{{ presupuestos|length }} total</span>
+        </div>
+
+        {% if presupuestos %}
+            <div class="list-group list-group-flush">
+                {% for p in presupuestos %}
+                    <div class="list-group-item px-0 py-3 border-top-0">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                            <div>
+                                <div class="fw-semibold">{{ p.categoria }}</div>
+                                <small class="text-muted">Periodo: {{ p.mes }}/{{ p.anio }}</small>
+                            </div>
+                            <span class="badge text-bg-success fs-6">${{ p.monto_limite }}</span>
                         </div>
                     </div>
-
-                    <!-- Mes y Año -->
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">
-                            <i class="bi bi-calendar me-1 text-muted"></i> Período
-                        </label>
-                        <div class="month-year-inputs">
-                            <div class="form-group">
-                                <label for="mes" class="form-label small">Mes</label>
-                                <select name="mes" id="mes" class="form-select" required>
-                                    <option value="">Selecciona mes</option>
-                                    <option value="1">Enero</option>
-                                    <option value="2">Febrero</option>
-                                    <option value="3">Marzo</option>
-                                    <option value="4">Abril</option>
-                                    <option value="5">Mayo</option>
-                                    <option value="6">Junio</option>
-                                    <option value="7">Julio</option>
-                                    <option value="8">Agosto</option>
-                                    <option value="9">Septiembre</option>
-                                    <option value="10">Octubre</option>
-                                    <option value="11">Noviembre</option>
-                                    <option value="12">Diciembre</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="anio" class="form-label small">Año</label>
-                                <input type="number" name="anio" id="anio" class="form-control" min="2020"
-                                    max="2050" placeholder="2026" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-plus-circle me-2"></i> Crear presupuesto
-                        </button>
-                    </div>
-                </form>
+                {% endfor %}
             </div>
-        </div>
-
-        <!-- Info Section -->
-        <div class="col-lg-6">
-            <div class="card p-4" style="background: linear-gradient(135deg, #e7f3ff 0%, #f0f8ff 100%);">
-                <p class="section-label">Información</p>
-                <div class="text-muted small">
-                    <p class="mb-3">
-                        <i class="bi bi-info-circle me-2 text-info"></i>
-                        <strong>¿Qué es un presupuesto?</strong><br>
-                        Es un límite de gasto que estableces para una categoría en un período específico.
-                    </p>
-                    <p class="mb-3">
-                        <i class="bi bi-lightbulb me-2 text-info"></i>
-                        <strong>Beneficios:</strong><br>
-                        Te ayuda a controlar tus gastos y evitar exceder límites predeterminados.
-                    </p>
-                    <p class="mb-0">
-                        <i class="bi bi-check-circle me-2 text-info"></i>
-                        <strong>Seguimiento:</strong><br>
-                        Monitorea el progreso en la sección de presupuestos restantes.
-                    </p>
-                </div>
+        {% else %}
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                Aún no has creado presupuestos.
             </div>
-        </div>
+        {% endif %}
     </div>
 
-    <!-- Budget List -->
-    <h2 class="h5 fw-bold mb-3">Presupuestos activos</h2>
-
-    {% if presupuestos %}
-    <div class="d-flex flex-column gap-2">
-        {% for p in presupuestos %}
-        <div class="budget-item">
-            <div class="budget-icon">
-                <i class="bi bi-percent"></i>
-            </div>
-            <div class="flex-grow-1">
-                <div class="budget-desc">
-                    {{ p.categoria.nombre }}
-                    <span class="badge-period">{{ p.mes }}/{{ p.anio }}</span>
-                </div>
-                <div class="budget-meta">Límite de gasto mensual</div>
-            </div>
-            <div class="budget-amount me-2">$ {{ p.monto_limite }}</div>
-
-            <!-- Delete Button -->
-            <button class="btn-delete" data-bs-toggle="modal" data-bs-target="#modalEliminar"
-                data-id="{{ p.id }}" data-category="{{ p.categoria.nombre }}" data-amount="{{ p.monto_limite }}"
-                title="Eliminar presupuesto">
-                <i class="bi bi-trash3"></i>
-            </button>
-        </div>
-        {% endfor %}
+    <div class="text-center mt-4 d-flex justify-content-center gap-2 flex-wrap">
+        <a href="{% url 'remaining_budget' %}" class="btn btn-outline-success">
+            <i class="bi bi-bar-chart-line me-1"></i> Ver presupuesto restante
+        </a>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Volver al inicio
+        </a>
     </div>
-    {% else %}
-    <div class="text-center py-5 text-muted">
-        <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-        <p>No hay presupuestos creados aún.</p>
-        <small>Crea tu primer presupuesto usando el formulario de arriba</small>
-    </div>
-    {% endif %}
 
 </div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="modalEliminar" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 rounded-4 shadow">
-            <div class="modal-body text-center p-4">
-                <div class="mb-3">
-                    <span style="font-size:2.5rem;">🗑️</span>
-                </div>
-                <h5 class="fw-bold mb-1">¿Eliminar presupuesto?</h5>
-                <p class="text-muted small mb-4" id="modalDesc">Esta acción no se puede deshacer.</p>
-                <div class="d-flex gap-2 justify-content-center">
-                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
-                        Cancelar
-                    </button>
-                    <form id="formEliminar" method="POST" action="">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger px-4">
-                            <i class="bi bi-trash3 me-1"></i> Eliminar
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    // Modal handler for delete confirmation
-    document.getElementById('modalEliminar').addEventListener('show.bs.modal', function (e) {
-        const btn = e.relatedTarget;
-        const id = btn.getAttribute('data-id');
-        const category = btn.getAttribute('data-category');
-        const amount = btn.getAttribute('data-amount');
-
-        document.getElementById('modalDesc').textContent =
-            'Presupuesto de ' + category + ' ($' + amount + ') - ' + 'Esta acción no se puede deshacer.';
-        document.getElementById('formEliminar').action = '/presupuesto/eliminar/' + id + '/';
-    });
-</script>
-{% endblock %}
+</body>
+</html>

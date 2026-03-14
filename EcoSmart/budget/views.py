@@ -2,7 +2,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Sum, Avg, Count
 from datetime import datetime
-from .models import Ingreso, Gasto, Presupuesto, Categoria
+from decimal import Decimal, InvalidOperation
+from .models import Ingreso, Gasto, Presupuesto, Categoria, ObjetivoAhorro
 
 
 # Home
@@ -372,6 +373,76 @@ def financial_statistics(request):
     })
 
 
+def savings_goal(request):
+    error = None
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'add_progress':
+            objetivo_id = request.POST.get('objetivo_id')
+            abono_raw = request.POST.get('abono', '').strip()
+
+            if not objetivo_id or not abono_raw:
+                error = 'Debes indicar un objetivo y un monto para registrar avance.'
+            else:
+                try:
+                    abono = Decimal(abono_raw)
+                    if abono <= 0:
+                        error = 'El abono debe ser mayor que 0.'
+                    else:
+                        objetivo = get_object_or_404(ObjetivoAhorro, id=objetivo_id)
+                        objetivo.monto_ahorrado = objetivo.monto_ahorrado + abono
+                        objetivo.save(update_fields=['monto_ahorrado'])
+                        return redirect('savings_goal')
+                except InvalidOperation:
+                    error = 'El monto del abono no es válido.'
+        else:
+            nombre = request.POST.get('nombre', '').strip()
+            monto_objetivo_raw = request.POST.get('monto_objetivo', '').strip()
+            fecha_objetivo = request.POST.get('fecha_objetivo') or None
+
+            if not nombre or not monto_objetivo_raw:
+                error = 'Debes completar nombre y monto objetivo.'
+            else:
+                try:
+                    monto_objetivo = Decimal(monto_objetivo_raw)
+                    if monto_objetivo <= 0:
+                        error = 'El monto objetivo debe ser mayor que 0.'
+                    else:
+                        ObjetivoAhorro.objects.create(
+                            nombre=nombre,
+                            monto_objetivo=monto_objetivo,
+                            fecha_objetivo=fecha_objetivo,
+                        )
+                        return redirect('savings_goal')
+                except InvalidOperation:
+                    error = 'El monto objetivo no es válido.'
+
+    objetivos_db = ObjetivoAhorro.objects.all().order_by('-fecha_creacion', '-id')
+    objetivos = []
+    for objetivo in objetivos_db:
+        monto_objetivo = float(objetivo.monto_objetivo)
+        monto_ahorrado = float(objetivo.monto_ahorrado)
+        progreso = 0
+        if monto_objetivo > 0:
+            progreso = round((monto_ahorrado / monto_objetivo) * 100, 2)
+        progreso_visual = min(progreso, 100)
+        restante = round(monto_objetivo - monto_ahorrado, 2)
+        objetivos.append({
+            'obj': objetivo,
+            'progreso': progreso,
+            'progreso_visual': progreso_visual,
+            'restante': restante,
+            'completado': monto_ahorrado >= monto_objetivo,
+        })
+
+    return render(request, 'budget/savings_goal.html', {
+        'objetivos': objetivos,
+        'error': error,
+    })
+
+
 # FR5: Crear presupuesto
 def budget_create(request):
     if request.method == 'POST':
@@ -395,10 +466,3 @@ def budget_create(request):
         'categorias':   categorias,
         'presupuestos': presupuestos,
     })
-
-def budget_delete(request, id):
-    presupuesto = get_object_or_404(Presupuesto, id=id)
-    if request.method == 'POST':
-        presupuesto.delete()
-        return redirect('budget_create')
-    return redirect('budget_create')
