@@ -19,8 +19,8 @@ EcoSmart is a web application built with Django that helps users manage their pe
 | FR9 | Validate all financial inputs | Sprint 1 | Done | Team |
 | FR10 | Calculate remaining budget in real time | Sprint 1 | Done | Victor Infante |
 | FR11 | Display financial dashboard | Sprint 2 | In Progress | David Cuadros |
-| FR15 | Define savings goals | Sprint 2 | In Progress | Victor Infante |
-| FR16 | Track savings goal progress | Sprint 2 | In Progress | Victor Infante |
+| FR15 | Define savings goals | Sprint 2 | In Progress | Miguel Mercado |
+| FR16 | Track savings goal progress | Sprint 2 | In Progress | Miguel Mercado |
 | FR18 | Filter transactions by date/category/amount | Sprint 2 | Done | David Cuadros |
 | FR20 | Calculate key financial statistics | Sprint 2 | Done | Miguel Mercado |
 
