@@ -18,4 +18,7 @@ urlpatterns = [
     path('categorias/editar/<int:id>/', views.category_edit, name='category_edit'),
     path('categorias/eliminar/<int:id>/', views.category_delete, name='category_delete'),
     path('gasto/eliminar/<int:id>/', views.expense_delete, name='expense_delete'),
+    path('reportes/pdf/', views.export_pdfpage, name='export_pdfpage'),
+    path('reportes/pdf/download/', views.export_monthly_pdf, name='export_monthly_pdf'),
+    path('reportes/excel/download/', views.export_monthly_excel, name='export_monthly_excel'),
 ]
