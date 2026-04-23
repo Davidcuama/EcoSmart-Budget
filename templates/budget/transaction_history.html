@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Historial de Transacciones{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tx-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: .85rem 1rem;
+        border-radius: 10px;
+        border: 1px solid #f0f0f0;
+        background: #fff;
+        transition: box-shadow .15s;
+    }
+    .tx-item:hover { box-shadow: 0 2px 10px rgba(0,0,0,.07); }
+    .tx-icon {
+        width: 38px; height: 38px;
+        border-radius: 10px;
+        display: grid; place-items: center;
+        font-size: 1rem; flex-shrink: 0;
+    }
+    .tx-icon.ingreso { background: #d1e7dd; color: #0f5132; }
+    .tx-icon.gasto   { background: #f8d7da; color: #842029; }
+    .tx-desc  { font-weight: 600; font-size: .93rem; }
+    .tx-meta  { font-size: .78rem; color: #adb5bd; }
+    .tx-cat   {
+        font-size: .7rem; font-weight: 600;
+        background: #f0f0f0; color: #6c757d;
+        border-radius: 6px; padding: .1rem .45rem; margin-left: .4rem;
+    }
+    .tx-amount { font-weight: 700; white-space: nowrap; }
+    .tx-amount.ingreso { color: #198754; }
+    .tx-amount.gasto   { color: #dc3545; }
+    .section-label {
+        font-size: .7rem; font-weight: 700; letter-spacing: .1em;
+        text-transform: uppercase; color: #adb5bd; margin-bottom: 1.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 700px;">
+
+    <div class="mb-4">
+<h1 class="h3 fw-bold mb-1">Historial de Transacciones</h1>
+        <p class="text-muted small mb-0">Todos tus ingresos y gastos en un solo lugar</p>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card p-3 mb-4">
+        <p class="section-label mb-2">Filtros</p>
+        <form method="GET" action="" class="row g-2 align-items-end">
+
+            <div class="col-sm-4">
+                <label class="form-label small fw-semibold mb-1">Tipo</label>
+                <select name="tipo" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    <option value="ingreso" {% if filtro_tipo == 'ingreso' %}selected{% endif %}>Ingresos</option>
+                    <option value="gasto"   {% if filtro_tipo == 'gasto'   %}selected{% endif %}>Gastos</option>
+                </select>
+            </div>
+
+            <div class="col-sm-4">
+                <label class="form-label small fw-semibold mb-1">Categoría</label>
+                <select name="categoria" class="form-select form-select-sm">
+                    <option value="">Todas</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat.id }}" {% if filtro_categoria == cat.id %}selected{% endif %}>
+                        {{ cat.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-sm-4">
+                <label class="form-label small fw-semibold mb-1">Desde</label>
+                <input type="date" name="desde" class="form-control form-control-sm" value="{{ filtro_desde }}">
+            </div>
+
+            <div class="col-sm-4">
+                <label class="form-label small fw-semibold mb-1">Hasta</label>
+                <input type="date" name="hasta" class="form-control form-control-sm" value="{{ filtro_hasta }}">
+            </div>
+
+            <div class="col-sm-4 d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary w-100">
+                    <i class="bi bi-funnel me-1"></i> Filtrar
+                </button>
+                <a href="{% url 'transaction_history' %}" class="btn btn-sm btn-outline-secondary w-100">
+                    <i class="bi bi-x"></i> Limpiar
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Contador -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 fw-bold mb-0">
+            {{ transacciones|length }} transacción{% if transacciones|length != 1 %}es{% endif %}
+        </h2>
+        <a href="{% url 'home' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Inicio
+        </a>
+    </div>
+
+    <!-- Lista -->
+    <div class="d-flex flex-column gap-2">
+        {% for tx in transacciones %}
+        <div class="tx-item">
+
+            <div class="tx-icon {{ tx.tipo }}">
+                {% if tx.tipo == 'ingreso' %}
+                <i class="bi bi-arrow-down-circle-fill"></i>
+                {% else %}
+                <i class="bi bi-arrow-up-circle-fill"></i>
+                {% endif %}
+            </div>
+
+            <div class="flex-grow-1">
+                <div class="tx-desc">
+                    {{ tx.descripcion }}
+                    {% if tx.categoria %}
+                    <span class="tx-cat">{{ tx.categoria }}</span>
+                    {% endif %}
+                </div>
+                <div class="tx-meta">
+                    {{ tx.fecha }}
+                    &nbsp;·&nbsp;
+                    {% if tx.tipo == 'ingreso' %}Ingreso{% else %}Gasto{% endif %}
+                </div>
+            </div>
+
+            <div class="tx-amount {{ tx.tipo }}">
+                {% if tx.tipo == 'ingreso' %}+{% else %}-{% endif %}${{ tx.monto }}
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+            No hay transacciones que coincidan con los filtros.
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

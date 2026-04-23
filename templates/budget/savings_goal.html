@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Objetivo de Ahorro{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 760px;">
+
+    <div class="text-center mb-4">
+        <span class="badge rounded-pill text-bg-primary px-3 py-2 mb-2">
+            <i class="bi bi-piggy-bank me-1"></i> Finanzas personales
+        </span>
+        <h1 class="h3 fw-bold mb-1">Definir Objetivo de Ahorro</h1>
+        <p class="text-muted small mb-0">Crea metas claras para organizar tu ahorro</p>
+    </div>
+
+    <div class="card p-4 mb-4">
+        <p class="section-label">Nuevo objetivo</p>
+
+        {% if error %}
+            <div class="alert alert-danger py-2 small" role="alert">
+                <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
+            </div>
+        {% endif %}
+
+        <form method="POST" class="row g-3">
+            {% csrf_token %}
+
+            <div class="col-12">
+                <label for="nombre" class="form-label fw-semibold">Nombre del objetivo</label>
+                <input type="text" name="nombre" id="nombre" class="form-control" placeholder="Ej. Fondo de emergencia" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="monto_objetivo" class="form-label fw-semibold">Monto objetivo</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white text-muted">$</span>
+                    <input type="number" name="monto_objetivo" id="monto_objetivo" class="form-control" step="0.01" min="0.01" placeholder="0.00" required>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label for="fecha_objetivo" class="form-label fw-semibold">Fecha objetivo (opcional)</label>
+                <input type="date" name="fecha_objetivo" id="fecha_objetivo" class="form-control">
+            </div>
+
+            <div class="col-12 d-grid mt-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check2-circle me-1"></i> Guardar objetivo
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <p class="section-label mb-0">Objetivos registrados</p>
+            <span class="badge text-bg-light border">{{ objetivos|length }} total</span>
+        </div>
+
+        {% if objetivos %}
+            <div class="list-group list-group-flush">
+                {% for item in objetivos %}
+                    <div class="list-group-item px-0 py-3 border-top-0">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                            <div class="w-100">
+                                <div class="fw-semibold mb-1">{{ item.obj.nombre }}</div>
+                                {% if item.obj.fecha_objetivo %}
+                                    <small class="text-muted">Fecha objetivo: {{ item.obj.fecha_objetivo }}</small>
+                                {% else %}
+                                    <small class="text-muted">Sin fecha definida</small>
+                                {% endif %}
+                            </div>
+                            <span class="badge text-bg-primary fs-6">Meta: ${{ item.obj.monto_objetivo }}</span>
+                        </div>
+
+                        <div class="small mb-2 d-flex justify-content-between text-muted">
+                            <span>Ahorrado: <strong>${{ item.obj.monto_ahorrado }}</strong></span>
+                            <span>Restante: <strong>${{ item.restante }}</strong></span>
+                        </div>
+
+                        <div class="progress mb-2" role="progressbar" aria-valuenow="{{ item.progreso_visual }}" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar {% if item.completado %}bg-success{% else %}bg-primary{% endif %}" style="width: {{ item.progreso_visual }}%;">
+                                {{ item.progreso }}%
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            {% if item.completado %}
+                                <span class="badge text-bg-success">Completado</span>
+                            {% else %}
+                                <span class="badge text-bg-warning text-dark">En progreso</span>
+                            {% endif %}
+
+                            <form method="POST" class="d-flex gap-2 align-items-center">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="add_progress">
+                                <input type="hidden" name="objetivo_id" value="{{ item.obj.id }}">
+                                <div class="input-group input-group-sm" style="max-width: 190px;">
+                                    <span class="input-group-text bg-white text-muted">$</span>
+                                    <input type="number" name="abono" class="form-control" step="0.01" min="0.01" placeholder="Abono" required>
+                                </div>
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-plus-circle me-1"></i> Registrar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                Aún no has definido objetivos de ahorro.
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Volver al inicio
+        </a>
+    </div>
+
+</div>
+{% endblock %}
