@@ -41,10 +41,12 @@
                                 <td class="text-end {% if item.restante < 0 %}text-danger{% else %}text-success{% endif %} fw-bold">${{ item.restante }}</td>
                                 <td class="text-end">{{ item.porcentaje }}%</td>
                                 <td class="text-center">
-                                    {% if item.estado == 'Excedido' %}
-                                        <span class="badge text-bg-danger">Excedido</span>
+                                    {% if item.estado == 'Tope Máximo' %}
+                                        <span class="badge text-bg-danger"><i class="bi bi-x-octagon-fill me-1"></i>Tope Máximo</span>
+                                    {% elif item.estado == 'Crítico' %}
+                                        <span class="badge text-bg-warning text-dark"><i class="bi bi-exclamation-triangle-fill me-1"></i>Crítico</span>
                                     {% else %}
-                                        <span class="badge text-bg-success">OK</span>
+                                        <span class="badge text-bg-success"><i class="bi bi-check-circle-fill me-1"></i>OK</span>
                                     {% endif %}
                                 </td>
                             </tr>

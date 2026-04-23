@@ -82,12 +82,19 @@ def remaining_budget(request):
         restante = float(presupuesto.monto_limite) - float(total_gastos)
         porcentaje = (float(total_gastos) / float(presupuesto.monto_limite) * 100) if presupuesto.monto_limite > 0 else 0
 
+        if porcentaje >= 100:
+            estado = 'Tope Máximo'
+        elif porcentaje >= 80:
+            estado = 'Crítico'
+        else:
+            estado = 'OK'
+
         presupuestos_con_restante.append({
             'presupuesto': presupuesto,
             'total_gastos': total_gastos,
             'restante': restante,
             'porcentaje': round(porcentaje, 2),
-            'estado': 'Excedido' if restante < 0 else 'OK',
+            'estado': estado,
         })
 
     return render(request, 'budget/remaining_budget.html', {
@@ -201,6 +208,38 @@ def expense_record(request):
         categoria_id = request.POST.get('categoria')
         categoria = Categoria.objects.filter(id=categoria_id, usuario=request.user).first() if categoria_id else None
         Gasto.objects.create(descripcion=descripcion, monto=monto, categoria=categoria, usuario=request.user)
+
+        # ─── Trigger Budget Alerts ─────────────────────────────────────────────
+        if categoria:
+            now = datetime.now()
+            presupuesto = Presupuesto.objects.filter(
+                categoria=categoria,
+                mes=now.month,
+                anio=now.year,
+                usuario=request.user,
+            ).first()
+            if presupuesto and presupuesto.monto_limite > 0:
+                total_gastado = Gasto.objects.filter(
+                    categoria=categoria,
+                    fecha__month=now.month,
+                    fecha__year=now.year,
+                    usuario=request.user,
+                ).aggregate(Sum('monto'))['monto__sum'] or 0
+                porcentaje = float(total_gastado) / float(presupuesto.monto_limite) * 100
+                if porcentaje >= 100:
+                    messages.error(
+                        request,
+                        f'🔴 ¡Has superado el presupuesto de "{categoria.nombre}"! '
+                        f'Gastado: ${float(total_gastado):.2f} / Límite: ${float(presupuesto.monto_limite):.2f}'
+                    )
+                elif porcentaje >= 80:
+                    messages.warning(
+                        request,
+                        f'⚠️ Llevas el {porcentaje:.0f}% del presupuesto de "{categoria.nombre}". '
+                        f'Gastado: ${float(total_gastado):.2f} / Límite: ${float(presupuesto.monto_limite):.2f}'
+                    )
+        # ───────────────────────────────────────────────────────────────────────
+
         return redirect('expense_record')
 
     filtro_categoria = request.GET.get('categoria', '').strip()
