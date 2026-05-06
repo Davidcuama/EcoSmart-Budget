@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}Exportar Reportes{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">📊 Centro de Reportes</h3>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted mb-4">
+                        Descarga tus reportes financieros en el formato que prefieras (PDF o Excel). 
+                        Incluye información de presupuestos, ingresos, gastos y objetivos de ahorro.
+                    </p>
+
+                    <!-- Selección de mes y año -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="mes" class="form-label fw-bold">Mes:</label>
+                            <select id="mes" class="form-select">
+                                <option value="1" {% if current_month == 1 %}selected{% endif %}>Enero</option>
+                                <option value="2" {% if current_month == 2 %}selected{% endif %}>Febrero</option>
+                                <option value="3" {% if current_month == 3 %}selected{% endif %}>Marzo</option>
+                                <option value="4" {% if current_month == 4 %}selected{% endif %}>Abril</option>
+                                <option value="5" {% if current_month == 5 %}selected{% endif %}>Mayo</option>
+                                <option value="6" {% if current_month == 6 %}selected{% endif %}>Junio</option>
+                                <option value="7" {% if current_month == 7 %}selected{% endif %}>Julio</option>
+                                <option value="8" {% if current_month == 8 %}selected{% endif %}>Agosto</option>
+                                <option value="9" {% if current_month == 9 %}selected{% endif %}>Septiembre</option>
+                                <option value="10" {% if current_month == 10 %}selected{% endif %}>Octubre</option>
+                                <option value="11" {% if current_month == 11 %}selected{% endif %}>Noviembre</option>
+                                <option value="12" {% if current_month == 12 %}selected{% endif %}>Diciembre</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="anio" class="form-label fw-bold">Año:</label>
+                            <select id="anio" class="form-select">
+                                {% for year in years %}
+                                    <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Opciones de descarga -->
+                    <div class="row g-3">
+                        <!-- Opción PDF -->
+                        <div class="col-md-6">
+                            <div class="card border-danger h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-file-earmark-pdf" style="font-size: 3rem; color: #dc3545;"></i>
+                                    <h5 class="card-title mt-3">Descargar PDF</h5>
+                                    <p class="card-text small text-muted">
+                                        Formato profesional ideal para imprimir y compartir
+                                    </p>
+                                    <button type="button" class="btn btn-danger btn-sm" id="btn-pdf">
+                                        <i class="bi bi-download"></i> Descargar PDF
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Opción Excel -->
+                        <div class="col-md-6">
+                            <div class="card border-success h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-file-earmark-spreadsheet" style="font-size: 3rem; color: #198754;"></i>
+                                    <h5 class="card-title mt-3">Descargar Excel</h5>
+                                    <p class="card-text small text-muted">
+                                        Formato editable ideal para análisis y comparaciones
+                                    </p>
+                                    <button type="button" class="btn btn-success btn-sm" id="btn-excel">
+                                        <i class="bi bi-download"></i> Descargar Excel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info d-flex align-items-center mt-4" role="alert">
+                        <i class="bi bi-info-circle me-3 fs-5"></i>
+                        <div>
+                            <strong>Contenido del Reporte:</strong>
+                            <ul class="mb-0 mt-2 small">
+                                <li>📊 Presupuestos vs Gastos del mes</li>
+                                <li>💰 Todos los ingresos registrados</li>
+                                <li>💸 Todos los gastos registrados</li>
+                                <li>🎯 Objetivos de ahorro y su progreso</li>
+                                <li>📈 Resumen financiero completo</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4 border-info">
+                <div class="card-body">
+                    <h5 class="card-title">💡 Consejos:</h5>
+                    <ul class="small mb-0">
+                        <li><strong>PDF:</strong> Usa este formato para guardar registros mensuales o compartir con asesor financiero</li>
+                        <li><strong>Excel:</strong> Usa este formato para análisis adicionales, crear gráficas personalizadas o comparar meses</li>
+                        <li>Descarga reportes históricos para monitorear tu evolución financiera</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 10px;
+        border: none;
+    }
+
+    .card-header {
+        border-radius: 10px 10px 0 0;
+    }
+
+    .form-select, .form-control {
+        border-radius: 5px;
+        border: 1px solid #ddd;
+    }
+
+    .btn {
+        border-radius: 5px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-danger:hover {
+        background-color: #bb2d3b;
+        border-color: #bb2d3b;
+    }
+
+    .btn-success:hover {
+        background-color: #0d6e3f;
+        border-color: #0d6e3f;
+    }
+
+    .alert {
+        border-radius: 5px;
+        border: 1px solid #d1ecf1;
+    }
+
+    .card.border-danger, .card.border-success {
+        transition: all 0.3s ease;
+    }
+
+    .card.border-danger:hover, .card.border-success:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnPdf = document.getElementById('btn-pdf');
+        const btnExcel = document.getElementById('btn-excel');
+        const mesSelect = document.getElementById('mes');
+        const anioSelect = document.getElementById('anio');
+
+        btnPdf.addEventListener('click', function() {
+            const mes = mesSelect.value;
+            const anio = anioSelect.value;
+            window.location.href = `/reportes/pdf/download/?mes=${mes}&anio=${anio}`;
+        });
+
+        btnExcel.addEventListener('click', function() {
+            const mes = mesSelect.value;
+            const anio = anioSelect.value;
+            window.location.href = `/reportes/excel/download/?mes=${mes}&anio=${anio}`;
+        });
+    });
+</script>
+{% endblock %}

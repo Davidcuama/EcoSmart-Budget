@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% block title %}EcoSmart - Análisis de Hábitos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        border-radius: 14px;
+        padding: 1.5rem;
+        text-align: center;
+        color: white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .stat-card .value   { font-size: 1.8rem; font-weight: 700; }
+    .stat-card .label   { font-size: 0.85rem; opacity: 0.9; margin-top: 0.25rem; }
+    .chart-card         { border-radius: 14px; padding: 1.5rem; background: white; box-shadow: 0 2px 14px rgba(0,0,0,0.07); }
+    .tendency-up        { background: linear-gradient(135deg,#dc3545,#b02a37); }
+    .tendency-down      { background: linear-gradient(135deg,#198754,#146c43); }
+    .tendency-neutral   { background: linear-gradient(135deg,#6c757d,#495057); }
+    .top-badge          { border-radius: 50px; padding: 0.4rem 1rem; font-size: 0.85rem; font-weight: 600; }
+    .progress-thin      { height: 8px; border-radius: 4px; }
+    .section-title      { font-weight: 700; color: #0c5aa0; border-left: 4px solid #0c5aa0; padding-left: 0.75rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-2">
+
+    <!-- Encabezado -->
+    <div class="d-flex align-items-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold mb-0" style="color:#0c5aa0;">
+                <i class="bi bi-graph-up-arrow me-2"></i>Análisis de Hábitos de Gasto
+            </h3>
+            <p class="text-muted mb-0 small">Comprende tus patrones de consumo y toma mejores decisiones</p>
+        </div>
+    </div>
+
+    {% if not total_gastos %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        Aún no tienes gastos registrados. <a href="{% url 'expense_record' %}" class="alert-link">Registra tu primer gasto</a> para ver el análisis.
+    </div>
+    {% else %}
+
+    <!-- Tarjetas de resumen -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="stat-card" style="background:linear-gradient(135deg,#0c5aa0,#084a7a);">
+                <div class="value">${{ total_gastos|floatformat:2 }}</div>
+                <div class="label"><i class="bi bi-cash-stack me-1"></i>Total Gastado</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="stat-card" style="background:linear-gradient(135deg,#fd7e14,#e35d0a);">
+                <div class="value">${{ promedio_mensual|floatformat:2 }}</div>
+                <div class="label"><i class="bi bi-calendar3 me-1"></i>Promedio Mensual</div>
+            </div>
+        </div>
+
+        {% if tendencia %}
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="stat-card {% if tendencia.sube %}tendency-up{% else %}tendency-down{% endif %}">
+                <div class="value">
+                    <i class="bi bi-arrow-{% if tendencia.sube %}up{% else %}down{% endif %}-circle-fill"></i>
+                    ${{ tendencia.diferencia|floatformat:2 }}
+                </div>
+                <div class="label">
+                    {% if tendencia.sube %}Subió respecto a{% else %}Bajó respecto a{% endif %}
+                    {{ tendencia.mes_anterior }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="stat-card" style="background:linear-gradient(135deg,#6f42c1,#5a32a3);">
+                <div class="value">{{ gastos_por_cat|length }}</div>
+                <div class="label"><i class="bi bi-tags me-1"></i>Categorías con gasto</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficas -->
+    <div class="row g-4 mb-4">
+
+        <!-- Dona por categoría -->
+        <div class="col-12 col-lg-5">
+            <div class="chart-card h-100">
+                <h6 class="section-title mb-3">Distribución por Categoría</h6>
+                <canvas id="chartCategorias" height="260"></canvas>
+            </div>
+        </div>
+
+        <!-- Barras evolución mensual -->
+        <div class="col-12 col-lg-7">
+            <div class="chart-card h-100">
+                <h6 class="section-title mb-3">Evolución Mensual de Gastos</h6>
+                <canvas id="chartMeses" height="260"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top 3 categorías -->
+    {% if top3 %}
+    <div class="mb-4">
+        <h6 class="section-title mb-3">Top 3 Categorías con Mayor Gasto</h6>
+        <div class="row g-3">
+            {% for cat in top3 %}
+            <div class="col-12 col-md-4">
+                <div class="card border-0 shadow-sm p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-semibold">{{ cat.categoria__nombre|default:"Sin categoría" }}</span>
+                        <span class="top-badge bg-primary bg-opacity-10 text-primary">#{{ forloop.counter }}</span>
+                    </div>
+                    <div class="h5 fw-bold text-danger mb-1">${{ cat.total|floatformat:2 }}</div>
+                    <div class="text-muted small mb-2">{{ cat.cantidad }} transacción{{ cat.cantidad|pluralize:"es" }}</div>
+                    <div class="progress progress-thin">
+                        <div class="progress-bar bg-primary" style="width:{{ cat.porcentaje }}%"></div>
+                    </div>
+                    <div class="text-end text-muted small mt-1">{{ cat.porcentaje }}% del total</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tabla detallada -->
+    <div class="chart-card">
+        <h6 class="section-title mb-3">Detalle por Categoría</h6>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Categoría</th>
+                        <th class="text-end">Total Gastado</th>
+                        <th class="text-center">Transacciones</th>
+                        <th>Participación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat in gastos_por_cat %}
+                    <tr>
+                        <td class="fw-semibold">
+                            <i class="bi bi-tag-fill me-2 text-primary opacity-75"></i>
+                            {{ cat.categoria__nombre|default:"Sin categoría" }}
+                        </td>
+                        <td class="text-end text-danger fw-bold">${{ cat.total|floatformat:2 }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary rounded-pill">{{ cat.cantidad }}</span>
+                        </td>
+                        <td style="min-width:160px;">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1 progress-thin">
+                                    <div class="progress-bar bg-primary" style="width:{{ cat.porcentaje }}%"></div>
+                                </div>
+                                <span class="text-muted small">{{ cat.porcentaje }}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light fw-bold">
+                    <tr>
+                        <td>Total</td>
+                        <td class="text-end text-danger">${{ total_gastos|floatformat:2 }}</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const catLabels  = {{ cat_labels_json|safe }};
+const catTotales = {{ cat_totales_json|safe }};
+const mesLabels  = {{ meses_labels_json|safe }};
+const mesTotales = {{ meses_totales_json|safe }};
+
+const palette = [
+    '#0c5aa0','#198754','#fd7e14','#6f42c1','#0dcaf0',
+    '#ffc107','#dc3545','#20c997','#d63384','#6c757d',
+];
+
+if (catLabels.length > 0) {
+    new Chart(document.getElementById('chartCategorias'), {
+        type: 'doughnut',
+        data: {
+            labels: catLabels,
+            datasets: [{
+                data: catTotales,
+                backgroundColor: palette.slice(0, catLabels.length),
+                borderWidth: 2,
+                borderColor: '#fff',
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 14, font: { size: 12 } } },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` $${ctx.parsed.toLocaleString('es-CO', {minimumFractionDigits:2})}`,
+                    },
+                },
+            },
+        },
+    });
+}
+
+if (mesLabels.length > 0) {
+    new Chart(document.getElementById('chartMeses'), {
+        type: 'bar',
+        data: {
+            labels: mesLabels,
+            datasets: [{
+                label: 'Gasto mensual',
+                data: mesTotales,
+                backgroundColor: 'rgba(12,90,160,0.75)',
+                borderColor: '#0c5aa0',
+                borderWidth: 1,
+                borderRadius: 6,
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` $${ctx.parsed.y.toLocaleString('es-CO', {minimumFractionDigits:2})}`,
+                    },
+                },
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: v => '$' + v.toLocaleString('es-CO'),
+                    },
+                },
+            },
+        },
+    });
+}
+</script>
+{% endblock %}

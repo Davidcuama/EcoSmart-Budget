@@ -1,22 +1,35 @@
-<!-- budget/templates/budget/category_form.html -->
-<h1>{{ titulo }}</h1>
+{% extends 'base.html' %}
 
-<form action="" method="POST">
-    {% csrf_token %}
+{% block title %}{{ titulo }}{% endblock %}
 
-    <label for="nombre">Nombre de la Categoría:</label>
-    <input type="text" name="nombre" id="nombre" 
-           value="{% if categoria %}{{ categoria.nombre }}{% endif %}" required>
-    <br>
+{% block content %}
+<div class="container py-5" style="max-width: 500px;">
+    <div class="card p-4">
+        <h1 class="h3 fw-bold mb-4">{{ titulo }}</h1>
 
-    <button type="submit">
-        {% if action == 'crear' %}
-            Crear Categoría
-        {% else %}
-            Actualizar Categoría
-        {% endif %}
-    </button>
-    <a href="{% url 'manage_categories' %}">
-        <button type="button">Cancelar</button>
-    </a>
-</form>
+        <form action="" method="POST" class="row g-3">
+            {% csrf_token %}
+
+            <div class="col-12">
+                <label for="nombre" class="form-label fw-semibold">Nombre de la Categoría</label>
+                <input type="text" name="nombre" id="nombre" class="form-control"
+                       value="{% if categoria %}{{ categoria.nombre }}{% endif %}" required>
+            </div>
+
+            <div class="col-12 d-grid gap-2 d-md-flex">
+                <button type="submit" class="btn btn-primary btn-lg flex-md-grow-1">
+                    <i class="bi bi-check2-circle me-1"></i>
+                    {% if action == 'crear' %}
+                        Crear Categoría
+                    {% else %}
+                        Actualizar Categoría
+                    {% endif %}
+                </button>
+                <a href="{% url 'manage_categories' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-arrow-left me-1"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

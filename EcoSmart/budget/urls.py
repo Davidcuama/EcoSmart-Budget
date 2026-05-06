@@ -12,4 +12,7 @@ urlpatterns = [
     path('categorias/crear/',   views.category_create,    name='category_create'),      # FR7
     path('categorias/<int:id>/editar/', views.category_edit, name='category_edit'),   # FR7
     path('categorias/<int:id>/eliminar/', views.category_delete, name='category_delete'), # FR7
+    path('export/pdf/',         views.export_pdfpage,    name='export_pdfpage'),     # Página de export PDF
+    path('export/pdf/download/', views.export_monthly_pdf, name='export_monthly_pdf'),  # Descargar PDF
+    path('export/excel/download/', views.export_monthly_excel, name='export_monthly_excel'),  # Descargar Excel
 ]

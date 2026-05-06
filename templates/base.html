@@ -350,16 +350,15 @@
 
     <!-- Main Content -->
     <main class="py-4">
-        <!-- Budget Alerts -->
         {% if messages %}
-        <div class="container mb-3">
-            {% for message in messages %}
-            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
-                <span>{{ message }}</span>
-                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            <div class="container" style="max-width: 1100px;">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
         {% endif %}
         {% block content %}{% endblock %}
     </main>
